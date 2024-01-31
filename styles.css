@@ -2,5 +2,9 @@
 
 body {
     font-family: Inter, sans-serif;
-    margin: 20px;
+    padding: 3em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: top;
 }
