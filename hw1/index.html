@@ -8,27 +8,41 @@
 </head>
 
 <body>
-	<h1>📐 Homework 1: Rasterizer</h1>
-	<p>Implementing a simple rasterizer with features such as drawing triangles, supersampling, hierarchal transforms, and texture mapping with antialiasing, resulting in a functional vector graphics renderer.</p>
+	<h1>Homework 1: Rasterizer 📐</h1>
+	<p>In this homework, the goal is to implement a simple rasterizer with features such as drawing triangles, supersampling, hierarchal transforms, and texture mapping with antialiasing, resulting in a functional vector graphics renderer.</p>
 	<hr>
-	<h2>Task 1: Drawing Single-Color Triangles</h2>
+	<p><a href="#task1">Task 1: Drawing Single-Color Triangles</a><br>
+	<a href="#task2">Task 2: Antialiasing by Supersampling</a><br>
+	<a href="#task3">Task 3: Transforms</a><br>
+	<a href="#task4">Task 4: Barycentric Coordinates</a><br>
+	<a href="#task5">Task 5: "Pixel Sampling" for Texture Mapping</a><br>
+	<a href="#task6">Task 6: "Level Sampling" with mipmaps for Texture Mapping</a></p>
+	<hr>
+	<h2 id="task1">Task 1: Drawing Single-Color Triangles</h2>
 	<h3>Rasterizing Triangles</h3>
-	<p>In order to rasterize triangles to the frame buffer, we check if the center of each pixel is within the triangle. The <code>rasterize_triangle</code> function takes in coordinates for each of the three corners of the triangle. My implementation started off by traversing through the frame buffer and then determining whether the point was inside the line by creating a line function for each of the two corners of the triangle. After making sure that the center of the point was above each of the lines, it would fill the pixel in. This handled coordinates received in the clockwise direction, but to include coordinates in the counter-clockwise direction, I checked to see if the center of the point was under all three lines. In order to speed up computation, I used a bounding box around the triangle which was calculated by determining the lowest and highest <code>x</code> and <code>y</code> values that the triangle covered.</p>
+	<p>In order to rasterize triangles to the frame buffer, I check if the center of each pixel is within the triangle. The <code>rasterize_triangle</code> function takes in coordinates for each of the three corners of the triangle. My implementation first determines what the smallest bounding box (calculated by determining the lowest and highest <code>x</code> and <code>y</code> values that the triangle covered) around the triangle. Then, it iterates through each pixel in the bounding box and checks if the center of the pixel is within the triangle. We check if the center of the pixel <code>(x + 0.5, y + 0.5)</code> is in the triangle by checking to see that it is within the three edges of the triangle. If it is, the pixel is filled in with the color of the triangle. This handles coordinates received in the clockwise direction, but to include coordinates in the counter-clockwise direction, I reversed the inequality check.</p>
 	<p>This algorithm is no worse than traversing each sample individually in the bounding box of the triangle and determining if it's in the triangle because we still iterate through all the points in the bounding box. There is no optimization or short circuiting that reduces the number of pixels traversed.</p>
 	<div class="row">
-		<div class="column"><img src="images/basic_test4.png" width="50%"></div>
 		<div class="column"><img src="images/basic_test4_pixel.png" width="50%"></div>
 	</div>
 	<div class="row">
 		<div class="column"><code>basic/test4.svg</code></div>
-		<div class="column"><code>jaggies in basic/test4.svg</code></div>
 	</div>
+	<!--TODO: add extra credit details here -->
 	<h3>Extra Credit</h3>
-	<h2>Task 2: Antialiasing by Supersampling</h2>
-	<h2>Task 3: Transforms</h2>
-	<h2>Task 4: Barycentric Coordinates</h2>
-	<h2>Task 5: "Pixel Sampling" for Texture Mapping</h2>
-	<h2>Task 6: "Level Sampling" with mipmaps for Texture Mapping</h2>
+	
+	
+	<h2 id="task2">Task 2: Antialiasing by Supersampling</h2>
+	<h2 id="task3">Task 3: Transforms</h2>
+	<div class="row">
+		<div class="column"><img src="images/robot.png" width="50%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>robot stands on their head</code></div>
+	</div>
+	<h2 id="task4">Task 4: Barycentric Coordinates</h2>
+	<h2 id="task5">Task 5: "Pixel Sampling" for Texture Mapping</h2>
+	<h2 id="task6">Task 6: "Level Sampling" with mipmaps for Texture Mapping</h2>
 	<h2>Extra Credit</h2>
 </body>
 
