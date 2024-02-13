@@ -28,19 +28,38 @@
 	<div class="row">
 		<div class="column"><code>basic/test4.svg</code></div>
 	</div>
-	<!--TODO: add extra credit details here -->
-	<h3>Extra Credit</h3>
-	
-	
 	<h2 id="task2">Task 2: Antialiasing by Supersampling</h2>
+	<p>In this task, I implemented supersampling by updating the <code>sample_buffer</code> data structure and modifying certain algorithms. Supersampling is useful because it allows us to antialias and reduce the jaggies in our images, making pixels seem smoother zoomed out. The modifications I made to the rasterization pipeline was to first change the size of the <code>sample_buffer</code> to include the number of samples we wanted to sample, <code>width * height * sample_rate</code>. Now, each <code>(x, y)</code> pixel will be represented by a <code>sample_rate</code> number of samples that will be averaged in order to downsample to determine the color of the original pixel. I added a new <code>fill_sample</code> function which fills in the color of a specific sample for an <code>(x, y)</code> pixel and updates its color in the <code>sample_buffer</code> by using a new indexing method: <code>sample_buffer[sample_rate * (y * width + x) + s]</code>. I updated the <code>fill_pixel</code> sample to stay consistent for points and lines by calling <code>fill_sample</code> for the number of samples in the pixel, effectively making sure that all samples have the same color. In <code>rasterize_triangle</code>, I now iterated through each sample, rather than pixel to check if we were within bounds, and called <code>fill_sample</code> instead of <code>fill_pixel</code>. Finally, in <code>resolve_to_framebuffer</code>, I updated the frame buffer by getting all samples that corresponded to an <code>(x, y)</code> pixel and averaging the RGB values of all the samples to get the final color, which was then resolved to the framebuffer target.</p>
+	<div class="row">
+		<div class="column"><img src="images/test4_1.png" width="100%"></div>
+		<div class="column"><img src="images/test4_4.png" width="100%"></div>
+		<div class="column"><img src="images/test4_9.png" width="100%"></div>
+		<div class="column"><img src="images/test4_16.png" width="100%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>sample_rate = 1</code></div>
+		<div class="column"><code>sample_rate = 4</code></div>
+		<div class="column"><code>sample_rate = 9</code></div>
+		<div class="column"><code>sample_rate = 16</code></div>
+	</div>
 	<h2 id="task3">Task 3: Transforms</h2>
 	<div class="row">
 		<div class="column"><img src="images/robot.png" width="50%"></div>
 	</div>
 	<div class="row">
-		<div class="column"><code>robot stands on their head</code></div>
+		<div class="column"><code>cubeman stands on their head</code></div>
 	</div>
 	<h2 id="task4">Task 4: Barycentric Coordinates</h2>
+	<p>Barycentric coordinates work by determining the color based on the distance from each vertex. As we can see with our triangle, each vertex is red, green, or blue. We end up with a gradient triangle as our final image because each point that is not at the vertices, has a certain weight to the color of each of the vertices that factors into its final color.</p>
+	<p>We calculate the barycentric coordinates by solving for the value of each our new color coordinate system (<code>alpha</code>, <code>beta</code>, and <code>gamma</code>) based on the current <code>(x, y)</code> coordinate. This allows us to assign colors based on the strength of how close each of the points are too the . We then calculate the color by interpolating across the colors passed in to the function to get a weighted sum: <code>alpha * c0 + beta * c1 + gamma * c2</code>. This is our new value for the color at the point <code>(x, y)</code> so we call <code>fill_sample</code> with the new <code>color</code>.</p>
+	<div class="row">
+		<div class="column"><img src="images/bary.png" width="50%"></div>
+		<div class="column"><img src="images/bary_triangle.png" width="50%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>color wheel!</code></div>
+		<div class="column"><code>triangle with RGB vertices</code></div>
+	</div>
 	<h2 id="task5">Task 5: "Pixel Sampling" for Texture Mapping</h2>
 	<h2 id="task6">Task 6: "Level Sampling" with mipmaps for Texture Mapping</h2>
 	<h2>Extra Credit</h2>
