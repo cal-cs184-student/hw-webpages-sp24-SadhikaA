@@ -8,9 +8,11 @@
 </head>
 
 <body>
-	<h1>Homework 1: Rasterizer 📐</h1>
-	<p>In this homework, the goal is to implement a simple rasterizer with features such as drawing triangles, supersampling, hierarchal transforms, and texture mapping with antialiasing, resulting in a functional vector graphics renderer.</p>
+	<h1>📐 Homework 1: Rasterizer</h1>
+	<p><code>CS 184/284A: Computer Graphics and Imaging, Spring 2024</code><br>
+		<code>Sadhika Akula</code></p>
 	<hr>
+	<p>In this homework, the goal is to implement a simple rasterizer with features such as drawing triangles, supersampling, hierarchal transforms, and texture mapping with antialiasing, resulting in a functional vector graphics renderer.</p>
 	<p><a href="#task1">Task 1: Drawing Single-Color Triangles</a><br>
 	<a href="#task2">Task 2: Antialiasing by Supersampling</a><br>
 	<a href="#task3">Task 3: Transforms</a><br>
@@ -18,7 +20,7 @@
 	<a href="#task5">Task 5: "Pixel Sampling" for Texture Mapping</a><br>
 	<a href="#task6">Task 6: "Level Sampling" with mipmaps for Texture Mapping</a></p>
 	<hr>
-	<h2 id="task1">Task 1: Drawing Single-Color Triangles</h2>
+	<h2 id="task1" style="padding-top: 0px;">Task 1: Drawing Single-Color Triangles</h2>
 	<h3>Rasterizing Triangles</h3>
 	<p>In order to rasterize triangles to the frame buffer, I check if the center of each pixel is within the triangle. The <code>rasterize_triangle</code> function takes in coordinates for each of the three corners of the triangle. My implementation first determines what the smallest bounding box (calculated by determining the lowest and highest <code>x</code> and <code>y</code> values that the triangle covered) around the triangle. Then, it iterates through each pixel in the bounding box and checks if the center of the pixel is within the triangle. We check if the center of the pixel <code>(x + 0.5, y + 0.5)</code> is in the triangle by checking to see that it is within the three edges of the triangle. If it is, the pixel is filled in with the color of the triangle. This handles coordinates received in the clockwise direction, but to include coordinates in the counter-clockwise direction, I reversed the inequality check.</p>
 	<p>This algorithm is no worse than traversing each sample individually in the bounding box of the triangle and determining if it's in the triangle because we still iterate through all the points in the bounding box. There is no optimization or short circuiting that reduces the number of pixels traversed.</p>
@@ -50,7 +52,7 @@
 		<div class="column"><code>cubeman stands on their head</code></div>
 	</div>
 	<h2 id="task4">Task 4: Barycentric Coordinates</h2>
-	<p>Barycentric coordinates work by determining the color based on the distance from each vertex. As we can see with our triangle, each vertex is red, green, or blue. We end up with a gradient triangle as our final image because each point that is not at the vertices, has a certain weight to the color of each of the vertices that factors into its final color.</p>
+	<p>Barycentric coordinates work by determining our color based on the distance each point is from each vertex. As we can see with our triangle, each vertex is red, green, or blue. We end up with a gradient triangle as our final image because for each point not at the vertices, we calculate a certain weight of red, green, and blue based on distance and end up with a weighted sum of RGB colors within the triangle.</p>
 	<p>We calculate the barycentric coordinates by solving for the value of each our new color coordinate system (<code>alpha</code>, <code>beta</code>, and <code>gamma</code>) based on the current <code>(x, y)</code> coordinate. This allows us to assign colors based on the strength of how close each of the points are too the . We then calculate the color by interpolating across the colors passed in to the function to get a weighted sum: <code>alpha * c0 + beta * c1 + gamma * c2</code>. This is our new value for the color at the point <code>(x, y)</code> so we call <code>fill_sample</code> with the new <code>color</code>.</p>
 	<div class="row">
 		<div class="column"><img src="images/bary.png" width="50%"></div>
@@ -61,8 +63,47 @@
 		<div class="column"><code>triangle with RGB vertices</code></div>
 	</div>
 	<h2 id="task5">Task 5: "Pixel Sampling" for Texture Mapping</h2>
+	<p>With texture mapping, the goal is to interpolate to find the texture coordinate <code>(u, v)</code> for each <code>(x, y)</code> coordinate. We can do this using nearest and bilinear sampling methods. </p>
+	<p>I implemented texture mapping by calculating the <code>uv</code> coordinates based on the barycentric coordinates that had been calculated. I initialized the <code>SampleParams</code> struct with the <code>uv</code> values and then sampled from the texture based on which sampling method we wanted to use. The <code>sample</code> function returns a color which can then be used to fill the sample.</p>
+	<p>In the <code>sample_nearest</code> function, I found the nearest pixel to our <code>uv</code> coordinate and then returned the color of that pixel on the mipmap. To implement <code>sample_bilinear</code>, I got the nearest 4 texels to our <code>uv</code> coordinate. After, getting the colors, I linearly interpolated in both directions and then did a final interpolation of the two interpolations to get the final color value.</p>
+	<div class="row">
+		<div class="column"><img src="images/nearest_1_side.png" width="100%"></div>
+		<div class="column"><img src="images/nearest_16_side.png" width="100%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>nearest, sample_rate = 1</code></div>
+		<div class="column"><code>nearest, sample_rate = 16</code></div>
+	</div>
+	<br>
+	<div class="row">
+		<div class="column"><img src="images/bilinear_1_side.png" width="100%"></div>
+		<div class="column"><img src="images/bilinear_16_side.png" width="100%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>bilinear, sample_rate = 1</code></div>
+		<div class="column"><code>bilinear, sample_rate = 16</code></div>
+	</div>
+	<br>
+	<p>Based on these images, a higher sampling rate helps create a blurring effect that reduces jaggies no matter which sampling method is used for texture mapping. Bilinear seems to be better at blending nearby texels as we zoom in and creates the illusion of straight lines even without a higher sampling rate. Combining both bilinear sampling and high sampling rate allows us to get smooth and clear details even when zoomed in quite a bit. The tradeoffs are that bilinear sampling takes more time to render. If we have an image with lots of finer detail, bilinear sampling will be able to preserve these details much more than nearest sampling.</p>
 	<h2 id="task6">Task 6: "Level Sampling" with mipmaps for Texture Mapping</h2>
-	<h2>Extra Credit</h2>
+	<p>In level sampling, we add the calculation of samples that represent the downsampled image that we can use to improve the resolution and pick better texture samples that correspond with the amount of aliasing occuring.The modifications in the calculation include calculating derivatives that quantify the difference between texture coordinates that are near each other. In order to make these changes smoother, I used linear interpolation again to smooth out the shifts between mipmap levels. The <code>sample</code> function is modified to allow for both pixel sampling and level sampling to get trilinear texture filtering.</p>
+	<p>Now that the sampling technique can be modified using pixel sampling, level sampling, and <code>sample_rate</code>, I've found that the pixel sampling and level sampling take longer to render than changes to <code>sample_rate</code>. Antialiasing seems better with level sampling and supersampling. I think level sampling and pixel sampling work better when we are aiming to have our textures be smoother as we zoom in. Zooming in is definitely the greatest memory usage and speed in terms of having the ability to render everything at a specific framerate.</p>
+	<div class="row">
+		<div class="column"><img src="images/zero_nearest.png" width="100%"></div>
+		<div class="column"><img src="images/zero_linear.png" width="100%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>L_ZERO and P_NEAREST</code></div>
+		<div class="column"><code>L_ZERO and P_LINEAR</code></div>
+	</div>
+	<div class="row">
+		<div class="column"><img src="images/nearest_nearest.png" width="100%"></div>
+		<div class="column"><img src="images/nearest_linear.png" width="100%"></div>
+	</div>
+	<div style="margin-bottom:100px" class="row">
+		<div class="column"><code>L_NEAREST and P_NEAREST</code></div>
+		<div class="column"><code>L_NEAREST and P_LINEAR</code></div>
+	</div>
 </body>
 
 </html>

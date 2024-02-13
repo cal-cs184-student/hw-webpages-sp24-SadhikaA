@@ -11,6 +11,7 @@ h1, h2 {
 }
 
 h2 {
+    padding-top: 30px;
     font-size: 24px;
 }
 
@@ -23,8 +24,8 @@ body {
     letter-spacing: 0.3;
     line-height: 1.4;
     padding-top: 6vw;
-    padding-right: 18vw;
-    padding-left: 18vw;
+    padding-right: 15vw;
+    padding-left: 15vw;
 }
 
 p {
