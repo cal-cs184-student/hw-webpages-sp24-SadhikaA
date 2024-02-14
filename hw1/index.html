@@ -12,15 +12,16 @@
 	<p><code>CS 184/284A: Computer Graphics and Imaging, Spring 2024</code><br>
 		<code>Sadhika Akula</code></p>
 	<hr>
-	<p>In this homework, the goal is to implement a simple rasterizer with features such as drawing triangles, supersampling, hierarchal transforms, and texture mapping with antialiasing, resulting in a functional vector graphics renderer.</p>
-	<p><a href="#task1">Task 1: Drawing Single-Color Triangles</a><br>
+	<p>
+	<a href="#task1">Task 1: Drawing Single-Color Triangles</a><br>
 	<a href="#task2">Task 2: Antialiasing by Supersampling</a><br>
 	<a href="#task3">Task 3: Transforms</a><br>
 	<a href="#task4">Task 4: Barycentric Coordinates</a><br>
 	<a href="#task5">Task 5: "Pixel Sampling" for Texture Mapping</a><br>
 	<a href="#task6">Task 6: "Level Sampling" with mipmaps for Texture Mapping</a></p>
 	<hr>
-	<h2 id="task1" style="padding-top: 0px;">Task 1: Drawing Single-Color Triangles</h2>
+	<p>In this homework, the goal was to implement a simple rasterizer with features such as drawing triangles, supersampling, hierarchal transforms, and texture mapping with antialiasing, resulting in a functional vector graphics renderer. I learnt quite a bit about each of the sampling algorithms and texture mapping algorithms implemented throughout the project. I also learnt more about the sampling pipeline and how to represent the abstractions of sample buffer, pixels, texels, and coordinate systems through the data structures used in this project.</p>
+	<h2 id="overview" style="padding-top:0px;">Task 1: Drawing Single-Color Triangles</h2>
 	<h3>Rasterizing Triangles</h3>
 	<p>In order to rasterize triangles to the frame buffer, I check if the center of each pixel is within the triangle. The <code>rasterize_triangle</code> function takes in coordinates for each of the three corners of the triangle. My implementation first determines what the smallest bounding box (calculated by determining the lowest and highest <code>x</code> and <code>y</code> values that the triangle covered) around the triangle. Then, it iterates through each pixel in the bounding box and checks if the center of the pixel is within the triangle. We check if the center of the pixel <code>(x + 0.5, y + 0.5)</code> is in the triangle by checking to see that it is within the three edges of the triangle. If it is, the pixel is filled in with the color of the triangle. This handles coordinates received in the clockwise direction, but to include coordinates in the counter-clockwise direction, I reversed the inequality check.</p>
 	<p>This algorithm is no worse than traversing each sample individually in the bounding box of the triangle and determining if it's in the triangle because we still iterate through all the points in the bounding box. There is no optimization or short circuiting that reduces the number of pixels traversed.</p>
