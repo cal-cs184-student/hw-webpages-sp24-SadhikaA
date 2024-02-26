@@ -2,9 +2,13 @@
 
 body {
     font-family: Inter, sans-serif;
-    padding: 3em;
+    padding: 2em;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: top;
+}
+
+a {
+    padding-bottom: 10px;
 }
