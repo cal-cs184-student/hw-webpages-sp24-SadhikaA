@@ -3,19 +3,72 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Homework 2</title>
+	<title>Homework 3</title>
 	<link rel="stylesheet" href="styles.css">
+	<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <body>
-	<h1>🪩 Homework 3: </h1>
+	<h1>🪩 Homework 3: Pathtracer</h1>
 	<p><code>CS 184/284A: Computer Graphics and Imaging, Spring 2024</code><br>
 		<code>Sadhika Akula</code></p>
 	<hr>
 	<p>
-
+	<a href="#part1">Part 1: Ray Generation and Scene Intersection</a><br>
+	<a href="#part2">Part 2: Bounding Volume Hierarchy</a><br>
+	<a href="#part3">Part 3: Direct Illumination</a><br>
+	<a href="#part4">Part 4: Global Illumination</a><br>
+	<a href="#part5">Part 5: Adaptive Sampling</a><br>
 	<hr>
-	<p>In this homework, </p>
+	<p>overview goes here</p>
+	<h2 id="part1">Part 1: Ray Generation and Scene Intersection</h2>
+	<p>The ray generation algorithm implemented allow us to transform coordinates of an image from <code>(x, y)</code> to be coordinates for a Ray in the world space. In order to this, I first converted the <code>(x, y)</code> coordinates to be in the domain <code>[-1, 1]</code> instead of <code>[0, 1]</code>. I then accounted for the field of view calculations, taking into account the fact that <code>hFov</code> and <code>vFov</code> were in radians, not degrees. Finally, I used the <code>c2w</code> matrix to calculate the position of the virtual axis-aligned sensor with respect to our new coordinates. I calculated the normalized version of this vector and then returned the <code>Ray</code> that started from the given <code>pos</code> vector to this newly calculated world space vector.</p>
+	<p>To generate pixel samples, for each sample, I picked a random sample by calling <code>gridSampler->get_sample()</code>. I then call <code>generateRay</code> on the sampled coordinates, making sure to normalize by the width and the height of the image. For each ray generated in the loop, I call <code>est_radiance_global_illumination</code> and sum up the total illumination from all the rays. I then take the average based on the number of samples and return a final call to <code>update_pixel</code> to render this pixel with the color.</p>
+	<p>In order to calculate ray-triangle intersection, I followed the Möller-Trumbore intersection algorithm. In order to use this algorithm, I first calculated a set of variables to make the calculations easier, specifically: <code>E1</code>, <code>E2</code>, <code>S</code>, <code>S1</code>, and <code>S2</code>. I then calculated the inverse determinant and multiplied this by the matrix: <span class='math'>\([S2 \cdot E2, S1 \cdot S, S2 \cdot D]^T\)</span>. This gave me the final matrix, <span class='math'>\([t, b1, b2]^T\)</span>. After getting the values for <code>t</code>, <code>b1</code>, and <code>b2</code>, I tested all of them to make sure that they were within <code>(0, 1)</code>. I repeated this same calculation for the <code>intersect</code> function, but also added updates to the <code>isect</code> variable, by calculating a normal vector based on our values for <code>b1</code>, <code>b2</code>, and <code>1 - b1 - b2</code>.</p>
+	<p>In order to calculate ray-sphere intersection, I followed the description from the slides and generated a quadratic equation for the intersection of the ray and the sphere. In order to simplify the calculations, I returned <code>false</code> if the determinant was less than zero because we want only positive roots. I then followed the same steps as ray-triangle intersection to assign values to our intersection. I also made sure to update the max clipping frame with <code>t</code>.</p>
+	<div class="row">
+		<div class="column"><img src="images/rayS.png" width="100%"></div>
+		<div class="column"><img src="images/rayD.png" width="100%"></div>
+		<div class="column"><img src="images/rayB.png" width="100%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>ray-sphere intersection</code></div>
+		<div class="column"><code>dragon normal shading</code></div>
+		<div class="column"><code>banana normal shading</code></div>
+	</div>
+	<h2 id="part2">Part 2: Bounding Volume Hierarchy</h2>
+	<p>
+		
+	</p>
+	<!--Walk through your BVH construction algorithm. Explain the heuristic you chose for picking the splitting point.
+		Show images with normal shading for a few large .dae files that you can only render with BVH acceleration.
+		Compare rendering times on a few scenes with moderately complex geometries with and without BVH acceleration. Present your results in a one-paragraph analysis.-->
+	<h2 id="part3">Part 3: Direct Illumination</h2>
+	<p>
+		
+	</p>
+	<!--Walk through both implementations of the direct lighting function.
+		Show some images rendered with both implementations of the direct lighting function.
+		Focus on one particular scene with at least one area light and compare the noise levels in soft shadows when rendering with 1, 4, 16, and 64 light rays (the -l flag) and with 1 sample per pixel (the -s flag) using light sampling, not uniform hemisphere sampling.
+		Compare the results between uniform hemisphere sampling and lighting sampling in a one-paragraph analysis.-->
+	<h2 id="part4">Part 4: Global Illumination</h2>
+	<p>
+		
+	</p>
+	<!--Walk through your implementation of the indirect lighting function.
+		Show some images rendered with global (direct and indirect) illumination. Use 1024 samples per pixel.
+		Pick one scene and compare rendered views first with only direct illumination, then only indirect illumination. Use 1024 samples per pixel. (You will have to edit PathTracer::at_least_one_bounce_radiance(...) in your code to generate these views.)
+		For CBbunny.dae, render the mth bounce of light with max_ray_depth set to 0, 1, 2, 3, 4, and 5 (the -m flag), and isAccumBounces=false. Explain in your writeup what you see for the 2nd and 3rd bounce of light, and how it contributes to the quality of the rendered image compared to rasterization. Use 1024 samples per pixel.
+		For CBbunny.dae, compare rendered views with max_ray_depth set to 0, 1, 2, 3, 4, and 5(the -m flag). Use 1024 samples per pixel.
+		For CBbunny.dae, output the Russian Roulette rendering with max_ray_depth set to 0, 1, 2, 3, 4, and 100(the -m flag). Use 1024 samples per pixel.
+		Pick one scene and compare rendered views with various sample-per-pixel rates, including at least 1, 2, 4, 8, 16, 64, and 1024. Use 4 light rays.
+		You will probably want to use the instructional machines for the above renders in order to not burn up your own computer for hours.-->
+	<h2 id="part5">Part 5: Adaptive Sampling</h2>
+	<p>
+		
+	</p>
+	<!--Explain adaptive sampling. Walk through your implementation of the adaptive sampling.
+		Pick two scenes and render them with at least 2048 samples per pixel. Show a good sampling rate image with clearly visible differences in sampling rate over various regions and pixels. Include both your sample rate image, which shows your how your adaptive sampling changes depending on which part of the image you are rendering, and your noise-free rendered result. Use 1 sample per light and at least 5 for max ray depth.-->
 </body>
 
 </html>
