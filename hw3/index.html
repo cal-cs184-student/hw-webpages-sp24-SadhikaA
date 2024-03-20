@@ -20,7 +20,8 @@
 	<a href="#part4">Part 4: Global Illumination</a><br>
 	<a href="#part5">Part 5: Adaptive Sampling</a><br>
 	<hr>
-	<p>overview goes here</p>
+	<h2>Overview</h2>
+	<p>In this homework, I learnt about how to generate and represent rays and intersect them with triangles and spheres. After this, I worked on implementing bounding volume hierarchy. After this, was direct and global illumination where I was directly able to see and implement different bounce setups. I also enjoyed working on Russian Roulette sampling and adaptive sampling because it made the concepts we learnt much better. I faced a few bugs with the first few tasks in speeding up computation but I found that I was able to resolve them with a bit of debugging. Overall, I thought that this was a really interesting homework because I was able to implement many of the algorithms that we had only learnt about in class.</p>
 	<h2 id="part1">Part 1: Ray Generation and Scene Intersection</h2>
 	<p>The ray generation algorithm implemented allow us to transform coordinates of an image from <code>(x, y)</code> to be coordinates for a Ray in the world space. In order to this, I first converted the <code>(x, y)</code> coordinates to be in the domain <code>[-1, 1]</code> instead of <code>[0, 1]</code>. I then accounted for the field of view calculations, taking into account the fact that <code>hFov</code> and <code>vFov</code> were in radians, not degrees. Finally, I used the <code>c2w</code> matrix to calculate the position of the virtual axis-aligned sensor with respect to our new coordinates. I calculated the normalized version of this vector and then returned the <code>Ray</code> that started from the given <code>pos</code> vector to this newly calculated world space vector.</p>
 	<p>To generate pixel samples, for each sample, I picked a random sample by calling <code>gridSampler->get_sample()</code>. I then call <code>generateRay</code> on the sampled coordinates, making sure to normalize by the width and the height of the image. For each ray generated in the loop, I call <code>est_radiance_global_illumination</code> and sum up the total illumination from all the rays. I then take the average based on the number of samples and return a final call to <code>update_pixel</code> to render this pixel with the color.</p>
@@ -37,24 +38,63 @@
 		<div class="column"><code>banana normal shading</code></div>
 	</div>
 	<h2 id="part2">Part 2: Bounding Volume Hierarchy</h2>
-	<p>
-		
+	<p>The way that my BVH construction algorithm works is by first creating a new node. Next, I determine if the number of primitives is less than the <code>max_leaf_size</code> and if so, setting the <code>start</code> and <code>end</code> values and then returning this node. If we don't hit this base case, then we need to split the bounding box into left and right sides and run the recursive algorithm on each. In order to split, I first found the current extent of the bounding box and then assigned our axis based on the largest of the three axes of the extent. After finding the axis to split, I created two lists representing the left and right primitives and looped across all primitives to assign each based on which side of the centroid it was on. Finally, I assigned the left and right nodes to be the result of recursive calls on the right and left primitives assigned above.
 	</p>
-	<!--Walk through your BVH construction algorithm. Explain the heuristic you chose for picking the splitting point.
-		Show images with normal shading for a few large .dae files that you can only render with BVH acceleration.
-		Compare rendering times on a few scenes with moderately complex geometries with and without BVH acceleration. Present your results in a one-paragraph analysis.-->
+	<p>I used the average centroid heuristic in order to determine how to split the vectors. This works by comparing the primitive's centroid value at the specific axis we're comparing and whether or not it is less than the average centroid for the bounding box. I found that this worked well to speed up the time it took for the renders, as we can see below.</p>
+	<div class="row">
+		<div class="column"><img src="images/max.png" width="100%"></div>
+		<div class="column"><img src="images/CBlucy.png" width="100%"></div>
+		<div class="column"><img src="images/dragon.png" width="100%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>max planck</code></div>
+		<div class="column"><code>CBlucy</code></div>
+		<div class="column"><code>dragon</code></div>
+	</div>
+	<div class="row">
+		<div class="column">124 sec -> 0.0142 sec</div>
+		<div class="column">638 sec -> 0.0589 sec</div>
+		<div class="column">369 sec -> 0.0278 sec</div>
+	</div>
 	<h2 id="part3">Part 3: Direct Illumination</h2>
-	<p>
-		
-	</p>
-	<!--Walk through both implementations of the direct lighting function.
-		Show some images rendered with both implementations of the direct lighting function.
-		Focus on one particular scene with at least one area light and compare the noise levels in soft shadows when rendering with 1, 4, 16, and 64 light rays (the -l flag) and with 1 sample per pixel (the -s flag) using light sampling, not uniform hemisphere sampling.
+	<p style="font-weight: 600">Uniform Hemisphere Sampling</p>
+	<p>The way that I implemented uniform hemisphere sampling was to first iterate through the samples and determine the vector of the light incoming. After converting this to world coordinates, I created a sample <code>Ray</code>. I also declared an <code>Intersection</code> object in order to check if the ray intersects the <code>bvh</code>. If there is no intersection, then I have to determine the outgoing light vector based on the following steps. I calculate the emission from the BSDF in order to get incoming light. I also then calculated the <code>cos</code> of the surface normal and the ray. Because this is sampling over the hemisphere, I set the <code>pdf</code> to be <code>1/(2 * PI)</code>. After going through and summing all samples, I normalize.</p>
+	<div class="row">
+		<div class="column"><img src="images/uniform_bunny.png" width="50%"></div>
+		<div class="column"><img src="images/uniform_spheres.png" width="50%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>uniform sample bunny.dae</code></div>
+		<div class="column"><code>uniform sample spheres.dae</code></div>
+	</div>
+	<p style="font-weight: 600">Light Sampling</p>
+	<p>Importance sampling with lights is similar to uniform hemisphere sampling but instead of going through all the samples, I iterate across all of the lights and then iterate through samples. Similarly to uniform hemisphere sampling, I modified the equation for calculating the outgoing light by handling the distance as well. I added a check for I also added a check for <code>is_delta_light</code> in order to terminate after only one iteration because this is a point light.</p>
+	<p>As we can see below, the noise is affected by the number of rays from the light source. When we have fewer rays, we are taking less samples, and therefore we have better convergence of the random samples. Once we get to 64 light rays, we're able to get an extremely clear render with very little noise.</p>
+	<div class="row">
+		<div class="column"><img src="images/light1.png" width="80%"></div>
+		<div class="column"><img src="images/light4.png" width="80%"></div>
+		<div class="column"><img src="images/light16.png" width="80%"></div>
+		<div class="column"><img src="images/light64.png" width="80%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>1 light ray, 1 sample</code></div>
+		<div class="column"><code>4 light rays, 1 sample</code></div>
+		<div class="column"><code>16 light rays, 1 sample</code></div>
+		<div class="column"><code>64 light rays, 1 sample</code></div>
+	</div>
+	<p>The differences between uniform hemisphere sampling and light sampling is that light sampling used importance sampling so we're able to get a better and faster convergence of values using random sampling. The noise is much higher with uniform hemisphere sampling because we are taking samples from all different directions. However, light sampling only focuses on rays that are from the light sources and are directly intersecting with the scene. Because uniform hemisphere sampling converges light from all directions, we are able to get a better distribution of light but need more iterations to reduce the noise. For direct illumination as we are implementing here, light importance sampling works better.</p>
+	<div class="row">
+		<div class="column"><img src="images/light_bunny.png" width="50%"></div>
+		<div class="column"><img src="images/light_spheres.png" width="50%"></div>
+	</div>
+	<div class="row">
+		<div class="column"><code>light sample bunny.dae</code></div>
+		<div class="column"><code>light sample spheres.dae</code></div>
+	</div>
+	<!--Focus on one particular scene with at least one area light and compare the noise levels in soft shadows when rendering with 1, 4, 16, and 64 light rays (the -l flag) and with 1 sample per pixel (the -s flag) using light sampling, not uniform hemisphere sampling.
 		Compare the results between uniform hemisphere sampling and lighting sampling in a one-paragraph analysis.-->
 	<h2 id="part4">Part 4: Global Illumination</h2>
-	<p>
-		
-	</p>
+	<p></p>
 	<!--Walk through your implementation of the indirect lighting function.
 		Show some images rendered with global (direct and indirect) illumination. Use 1024 samples per pixel.
 		Pick one scene and compare rendered views first with only direct illumination, then only indirect illumination. Use 1024 samples per pixel. (You will have to edit PathTracer::at_least_one_bounce_radiance(...) in your code to generate these views.)
@@ -64,9 +104,7 @@
 		Pick one scene and compare rendered views with various sample-per-pixel rates, including at least 1, 2, 4, 8, 16, 64, and 1024. Use 4 light rays.
 		You will probably want to use the instructional machines for the above renders in order to not burn up your own computer for hours.-->
 	<h2 id="part5">Part 5: Adaptive Sampling</h2>
-	<p>
-		
-	</p>
+	<p></p>
 	<!--Explain adaptive sampling. Walk through your implementation of the adaptive sampling.
 		Pick two scenes and render them with at least 2048 samples per pixel. Show a good sampling rate image with clearly visible differences in sampling rate over various regions and pixels. Include both your sample rate image, which shows your how your adaptive sampling changes depending on which part of the image you are rendering, and your noise-free rendered result. Use 1 sample per light and at least 5 for max ray depth.-->
 </body>
